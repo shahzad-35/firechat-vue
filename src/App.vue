@@ -1,6 +1,6 @@
 <template>
-  <div class="view login">
-    <form class="login-form">
+  <div class="view login" v-if="state.userName === '' || state.userName === null">
+    <form class="login-form" @submit.prevent="login">
       <div class="form-inner">
         <h1>Login for chat</h1>
         <label for="username">UserName</label>
@@ -15,8 +15,20 @@
       </div>
     </form>
   </div>
-  <div class="view chat">
-    <h1>Chat view</h1>
+  <div class="view chat" v-else>
+    <header>
+      <button class="logout">Logout</button>
+      <h1>Hello, {{ state.userName }}</h1>
+    </header>
+    <section class="chat-box">
+
+    </section>
+    <footer>
+      <form @submit.prevent="">
+        <input type="text" placeholder="Write message...">
+        <input type="submit" value="Send">
+      </form>
+    </footer>
   </div>
 </template>
 
@@ -31,12 +43,15 @@ export default {
       messages: []
     });
     const login = () => {
-      if(this.inputUserName.value != "" || this.inputUserName.value != null){
-
+      if(inputUserName.value != "" || inputUserName.value != null){
+        state.userName = inputUserName.value;
+        inputUserName.value = ""
       }
     }
     return {
       inputUserName,
+      login,
+      state
     };
   },
 };
