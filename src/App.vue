@@ -1,5 +1,8 @@
 <template>
-  <div class="view login" v-if="state.userName === '' || state.userName === null">
+  <div
+    class="view login"
+    v-if="state.userName === '' || state.userName === null"
+  >
     <form class="login-form" @submit.prevent="login">
       <div class="form-inner">
         <h1>Login for chat</h1>
@@ -20,13 +23,11 @@
       <button class="logout">Logout</button>
       <h1>Hello, {{ state.userName }}</h1>
     </header>
-    <section class="chat-box">
-
-    </section>
+    <section class="chat-box"></section>
     <footer>
       <form @submit.prevent="">
-        <input type="text" placeholder="Write message...">
-        <input type="submit" value="Send">
+        <input type="text" placeholder="Write message..." />
+        <input type="submit" value="Send" />
       </form>
     </footer>
   </div>
@@ -40,18 +41,18 @@ export default {
     const inputUserName = ref("");
     const state = reactive({
       userName: "",
-      messages: []
+      messages: [],
     });
     const login = () => {
-      if(inputUserName.value != "" || inputUserName.value != null){
+      if (inputUserName.value != "" || inputUserName.value != null) {
         state.userName = inputUserName.value;
-        inputUserName.value = ""
+        inputUserName.value = "";
       }
-    }
+    };
     return {
       inputUserName,
       login,
-      state
+      state,
     };
   },
 };
