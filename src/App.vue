@@ -25,8 +25,8 @@
     </header>
     <section class="chat-box"></section>
     <footer>
-      <form @submit.prevent="">
-        <input type="text" placeholder="Write message..." />
+      <form @submit.prevent="SendMessage">
+        <input type="text" v-model="inputMessage" placeholder="Write message..." />
         <input type="submit" value="Send" />
       </form>
     </footer>
@@ -35,10 +35,12 @@
 
 <script>
 import { reactive, onMounted, ref } from "vue";
+import { ref as firebaseRef, set } from 'firebase/database';
 import db from "./db";
 export default {
   setup() {
     const inputUserName = ref("");
+    const inputMessage = ref("");
     const state = reactive({
       userName: "",
       messages: [],
@@ -49,10 +51,27 @@ export default {
         inputUserName.value = "";
       }
     };
+
+    const SendMessage = () => {
+      const messagesRef = firebaseRef(db, 'messages');
+
+      if(inputMessage.value === "" || inputMessage.value === null){
+        return;
+      }
+      const newMessage = {
+        userName: state.userName,
+        content: inputMessage.value
+      };
+
+      messagesRef.push(newMessage)
+      inputMessage.value = ""
+    }
     return {
       inputUserName,
       login,
       state,
+      inputMessage,
+      SendMessage
     };
   },
 };
