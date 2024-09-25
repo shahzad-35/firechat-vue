@@ -20,10 +20,29 @@
   </div>
   <div class="view chat" v-else>
     <header>
-      <button class="logout">Logout</button>
+      <button class="pointer logout" @click="Logout">Logout</button>
       <h1>Hello, {{ state.userName }}</h1>
     </header>
-    <section class="chat-box"></section>
+    <section class="chat-box">
+      <div
+        v-for="message in state.messages"
+        :key="message.id"
+        :class="
+          message.userName == state.userName
+            ? 'message current-user'
+            : 'message'
+        "
+      >
+        <div class="message-inner">
+          <div class="username">
+            {{ message.userName }}
+          </div>
+          <div class="content">
+            {{ message.content }}
+          </div>
+        </div>
+      </div>
+    </section>
     <footer>
       <form @submit.prevent="SendMessage">
         <input
@@ -31,7 +50,7 @@
           v-model="inputMessage"
           placeholder="Write message..."
         />
-        <input type="submit" value="Send" />
+        <input class="pointer" type="submit" value="Send" />
       </form>
     </footer>
   </div>
@@ -39,9 +58,8 @@
 
 <script>
 import { reactive, onMounted, ref } from "vue";
-import { ref as firebaseRef, set, push} from "firebase/database";
-import database from "./db"; // db is the Firebase database instance
-
+import { ref as firebaseRef, set, push, onValue } from "firebase/database";
+import database from "./db";
 
 export default {
   setup() {
@@ -51,44 +69,58 @@ export default {
       userName: "",
       messages: [],
     });
+    const Logout = () => {
+      state.userName = ""
+    };
     const login = () => {
       if (inputUserName.value != "" || inputUserName.value != null) {
         state.userName = inputUserName.value;
         inputUserName.value = "";
       }
     };
-    //Todo:: need to work on connection with direbase
     const SendMessage = () => {
-      // Ensure the message input is not empty
       if (inputMessage.value === "" || inputMessage.value === null) {
         return;
       }
 
-      // Reference to the "messages" path in Firebase
       const messagesRef = firebaseRef(database, "/messages");
 
-      // Push a new message reference (this creates a unique key for each message)
-      const newMessageRef = push(messagesRef);
+      //use this line for first time only, when colection does not exist on server
+      // const newMessageRef = push(messagesRef);
 
-      // Set the message data with the user name and message content
-      set(newMessageRef, {
-        userName: state.userName, // Use the logged-in user name
-        message: inputMessage.value, // Use the message input
+      push(messagesRef, {
+        userName: state.userName,
+        message: inputMessage.value,
       })
         .then(() => {
-          // Clear the input field after sending the message
           inputMessage.value = "";
         })
         .catch((error) => {
           console.error("Error sending message:", error);
         });
     };
+    onMounted(() => {
+      const messagesRef = firebaseRef(database, "/messages");
+      onValue(messagesRef, (snapshot) => {
+        const data = snapshot.val();
+        let messages = [];
+        Object.keys(data).forEach((key) => {
+          messages.push({
+            id: key,
+            content: data[key].message,
+            userName: data[key].userName,
+          });
+        });
+        state.messages = messages;
+      });
+    });
     return {
       inputUserName,
       login,
       state,
       inputMessage,
       SendMessage,
+      Logout
     };
   },
 };
@@ -103,6 +135,9 @@ export default {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+.pointer {
+   cursor: pointer;
 }
 
 .view {
