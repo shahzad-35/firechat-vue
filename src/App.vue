@@ -26,7 +26,11 @@
     <section class="chat-box"></section>
     <footer>
       <form @submit.prevent="SendMessage">
-        <input type="text" v-model="inputMessage" placeholder="Write message..." />
+        <input
+          type="text"
+          v-model="inputMessage"
+          placeholder="Write message..."
+        />
         <input type="submit" value="Send" />
       </form>
     </footer>
@@ -35,8 +39,10 @@
 
 <script>
 import { reactive, onMounted, ref } from "vue";
-import { ref as firebaseRef, set } from 'firebase/database';
-import db from "./db";
+import { ref as firebaseRef, set, push} from "firebase/database";
+import database from "./db"; // db is the Firebase database instance
+
+
 export default {
   setup() {
     const inputUserName = ref("");
@@ -51,27 +57,38 @@ export default {
         inputUserName.value = "";
       }
     };
-
+    //Todo:: need to work on connection with direbase
     const SendMessage = () => {
-      const messagesRef = firebaseRef(db, 'messages');
-
-      if(inputMessage.value === "" || inputMessage.value === null){
+      // Ensure the message input is not empty
+      if (inputMessage.value === "" || inputMessage.value === null) {
         return;
       }
-      const newMessage = {
-        userName: state.userName,
-        content: inputMessage.value
-      };
 
-      messagesRef.push(newMessage)
-      inputMessage.value = ""
-    }
+      // Reference to the "messages" path in Firebase
+      const messagesRef = firebaseRef(database, "/messages");
+
+      // Push a new message reference (this creates a unique key for each message)
+      const newMessageRef = push(messagesRef);
+
+      // Set the message data with the user name and message content
+      set(newMessageRef, {
+        userName: state.userName, // Use the logged-in user name
+        message: inputMessage.value, // Use the message input
+      })
+        .then(() => {
+          // Clear the input field after sending the message
+          inputMessage.value = "";
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
+    };
     return {
       inputUserName,
       login,
       state,
       inputMessage,
-      SendMessage
+      SendMessage,
     };
   },
 };
