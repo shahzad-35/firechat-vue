@@ -61,6 +61,8 @@ import { reactive, onMounted, ref } from "vue";
 import { ref as firebaseRef, set, push, onValue } from "firebase/database";
 import database from "./db";
 
+
+//Todo:: Need to use vuex to maintain state
 export default {
   setup() {
     const inputUserName = ref("");
@@ -70,7 +72,7 @@ export default {
       messages: [],
     });
     const Logout = () => {
-      state.userName = ""
+      state.userName = "";
     };
     const login = () => {
       if (inputUserName.value != "" || inputUserName.value != null) {
@@ -120,7 +122,7 @@ export default {
       state,
       inputMessage,
       SendMessage,
-      Logout
+      Logout,
     };
   },
 };
@@ -137,7 +139,7 @@ export default {
   box-sizing: border-box;
 }
 .pointer {
-   cursor: pointer;
+  cursor: pointer;
 }
 
 .view {
