@@ -1,7 +1,7 @@
 <template>
   <div
     class="view login"
-    v-if="state.userName === '' || state.userName === null"
+    v-if="userName === '' || userName === null"
   >
     <form class="login-form" @submit.prevent="login">
       <div class="form-inner">
@@ -21,14 +21,14 @@
   <div class="view chat" v-else>
     <header>
       <button class="pointer logout" @click="Logout">Logout</button>
-      <h1>Hello, {{ state.userName }}</h1>
+      <h1>Hello, {{ userName }}</h1>
     </header>
     <section class="chat-box">
       <div
-        v-for="message in state.messages"
+        v-for="message in messages"
         :key="message.id"
         :class="
-          message.userName == state.userName
+          message.userName == userName
             ? 'message current-user'
             : 'message'
         "
@@ -57,43 +57,43 @@
 </template>
 
 <script>
-import { reactive, onMounted, ref } from "vue";
+import { onMounted,computed ,ref } from "vue";
 import { ref as firebaseRef, set, push, onValue } from "firebase/database";
 import database from "./db";
-
+import { useStore } from "vuex";
 
 //Todo:: Need to use vuex to maintain state
 export default {
   setup() {
+    const store = useStore();
+
     const inputUserName = ref("");
     const inputMessage = ref("");
-    const state = reactive({
-      userName: "",
-      messages: [],
-    });
+   
+    const userName = computed(() => store.state.userName);
+    const messages = computed(() => store.state.messages);
+
     const Logout = () => {
-      state.userName = "";
+      store.dispatch("logout");
     };
+
     const login = () => {
-      if (inputUserName.value != "" || inputUserName.value != null) {
-        state.userName = inputUserName.value;
+      if (inputUserName.value) {
+        store.dispatch("updateUserName", inputUserName.value);
         inputUserName.value = "";
       }
     };
+
     const SendMessage = () => {
-      if (inputMessage.value === "" || inputMessage.value === null) {
-        return;
-      }
+      if (!inputMessage.value) return;
+
+      const message = {
+        userName: store.state.userName,
+        message: inputMessage.value,
+      };
 
       const messagesRef = firebaseRef(database, "/messages");
-
-      //use this line for first time only, when colection does not exist on server
-      // const newMessageRef = push(messagesRef);
-
-      push(messagesRef, {
-        userName: state.userName,
-        message: inputMessage.value,
-      })
+      push(messagesRef, message)
         .then(() => {
           inputMessage.value = "";
         })
@@ -101,28 +101,27 @@ export default {
           console.error("Error sending message:", error);
         });
     };
+
     onMounted(() => {
       const messagesRef = firebaseRef(database, "/messages");
       onValue(messagesRef, (snapshot) => {
         const data = snapshot.val();
-        let messages = [];
-        Object.keys(data).forEach((key) => {
-          messages.push({
-            id: key,
-            content: data[key].message,
-            userName: data[key].userName,
-          });
-        });
-        state.messages = messages;
+        const messages = Object.keys(data).map((key) => ({
+          id: key,
+          content: data[key].message,
+          userName: data[key].userName,
+        }));
+        store.dispatch("fetchMessages", messages);
       });
     });
     return {
       inputUserName,
-      login,
-      state,
       inputMessage,
+      login,
       SendMessage,
       Logout,
+      userName,
+      messages,
     };
   },
 };
