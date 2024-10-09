@@ -1,5 +1,8 @@
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
-  publicPath: '/firechat-vue/'
+  publicPath: '/firechat-vue/',
+  css: {
+    extract: false,
+  },
 })
