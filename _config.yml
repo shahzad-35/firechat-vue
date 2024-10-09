@@ -1,0 +1,5 @@
+source: dist
+sass:
+  style: compressed
+scss:
+  style: compressed
