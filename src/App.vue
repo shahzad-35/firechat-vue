@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="view login"
-    v-if="userName === '' || userName === null"
-  >
+  <div class="view login" v-if="userName === '' || userName === null">
     <form class="login-form" @submit.prevent="login">
       <div class="form-inner">
         <h1>Login for chat</h1>
@@ -28,17 +25,26 @@
         v-for="message in messages"
         :key="message.id"
         :class="
-          message.userName == userName
-            ? 'message current-user'
-            : 'message'
+          message.userName == userName ? 'message current-user' : 'message'
         "
+        class="message-container"
       >
         <div class="message-inner">
-          <div class="username">
-            {{ message.userName }}
+          <div class="username">{{ message.userName }}</div>
+          <div class="content">{{ message.content }}</div>
+          <!-- <div class="message-options dots">⋮</div> -->
+          <div
+            class="message-options dots"
+            :class="message.userName == userName ? 's' : 'three-dots'"
+            @click="toggleOptions(message.id)"
+          >
+            ⋮
           </div>
-          <div class="content">
-            {{ message.content }}
+          <div v-if="message.showOptions" class="options-menu">
+            <span class="option" @click="editMessage(message.id)">Edit</span>
+            <span class="option" @click="deleteMessage(message.id)"
+              >Delete</span
+            >
           </div>
         </div>
       </div>
@@ -57,7 +63,7 @@
 </template>
 
 <script>
-import { onMounted,computed ,ref } from "vue";
+import { onMounted, computed, ref } from "vue";
 import { ref as firebaseRef, set, push, onValue } from "firebase/database";
 import database from "./db";
 import { useStore } from "vuex";
@@ -69,12 +75,19 @@ export default {
 
     const inputUserName = ref("");
     const inputMessage = ref("");
-   
+    const showOptions = ref("");
+
     const userName = computed(() => store.state.userName);
     const messages = computed(() => store.state.messages);
 
     const Logout = () => {
       store.dispatch("logout");
+    };
+
+    const toggleOptions = (id) => {
+      console.log("inside here", id);
+
+      showOptions.value = true;
     };
 
     const login = () => {
@@ -122,6 +135,7 @@ export default {
       Logout,
       userName,
       messages,
+      toggleOptions,
     };
   },
 };
@@ -372,5 +386,92 @@ export default {
       }
     }
   }
+}
+.view.chat {
+  flex-direction: column;
+
+  .chat-box {
+    border-radius: 24px 24px 0px 0px;
+    background-color: #fff;
+    box-shadow: 0px 0px 12px rgba(100, 100, 100, 0.2);
+    flex: 1 1 100%;
+    padding: 30px;
+
+    .message {
+      display: flex;
+      margin-bottom: 15px;
+      position: relative;
+
+      .message-inner {
+        display: flex;
+        flex-direction: column;
+        max-width: fit-content;
+        padding: 10px;
+        background-color: #f3f3f3;
+        border-radius: 20px;
+        word-wrap: break-word; 
+        position: relative;
+
+        .username {
+          color: #000000;
+          font-size: 14px;
+          margin-bottom: 5px;
+        }
+
+        .content {
+          padding: 10px 20px;
+          background-color: inherit;
+          border-radius: 999px;
+          color: #333;
+          font-size: 16px;
+          line-height: 1.2em;
+          position: relative;
+        }
+
+        
+        .message-options {
+          display: none;
+          cursor: pointer;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 18px;
+          vertical-align: middle;
+        }
+
+        &:hover .message-options {
+          display: block;
+        }
+      }
+
+      
+      &.message {
+        justify-content: flex-start;
+
+        .message-inner {
+          max-width: fit-content;
+        }
+      }
+
+      &.current-user {
+        justify-content: flex-end;
+
+        .message-inner {
+          background-color: #ea526f;
+          color: white;
+          max-width: fit-content;
+        }
+
+        
+        .message-options {
+          left: 10px; 
+          color: white;
+        }
+      }
+    }
+  }
+}
+.three-dots {
+  right: 10px;
 }
 </style>
