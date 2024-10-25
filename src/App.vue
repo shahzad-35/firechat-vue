@@ -68,7 +68,7 @@ import { ref as firebaseRef, set, push, onValue } from "firebase/database";
 import database from "./db";
 import { useStore } from "vuex";
 
-//Todo:: Need to use vuex to maintain state
+
 export default {
   setup() {
     const store = useStore();
