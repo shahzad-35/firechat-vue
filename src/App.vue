@@ -32,7 +32,7 @@
         <div class="message-inner">
           <div class="username">{{ message.userName }}</div>
           <div class="content">{{ message.content }}</div>
-          <!-- <div class="message-options dots">⋮</div> -->
+
           <div
             class="message-options dots"
             :class="message.userName == userName ? 's' : 'three-dots'"
@@ -40,8 +40,8 @@
           >
             ⋮
           </div>
-          <div v-if="message.showOptions" class="options-menu">
-            <span class="option" @click="editMessage(message.id)">Edit</span>
+
+          <div v-if="showOptions.value === true" class="options-menu">
             <span class="option" @click="deleteMessage(message.id)"
               >Delete</span
             >
@@ -63,11 +63,10 @@
 </template>
 
 <script>
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, ref,watch } from "vue";
 import { ref as firebaseRef, set, push, onValue } from "firebase/database";
 import database from "./db";
 import { useStore } from "vuex";
-
 
 export default {
   setup() {
@@ -83,11 +82,15 @@ export default {
     const Logout = () => {
       store.dispatch("logout");
     };
-
+    watch(showOptions, (newValue) => {
+  console.log("showOptions changed to:", newValue);
+});
     const toggleOptions = (id) => {
       console.log("inside here", id);
+      console.log("show option", showOptions.value);
 
       showOptions.value = true;
+
     };
 
     const login = () => {
@@ -133,6 +136,7 @@ export default {
       login,
       SendMessage,
       Logout,
+      showOptions,
       userName,
       messages,
       toggleOptions,
@@ -409,7 +413,7 @@ export default {
         padding: 10px;
         background-color: #f3f3f3;
         border-radius: 20px;
-        word-wrap: break-word; 
+        word-wrap: break-word;
         position: relative;
 
         .username {
@@ -428,7 +432,6 @@ export default {
           position: relative;
         }
 
-        
         .message-options {
           display: none;
           cursor: pointer;
@@ -444,7 +447,6 @@ export default {
         }
       }
 
-      
       &.message {
         justify-content: flex-start;
 
@@ -462,9 +464,8 @@ export default {
           max-width: fit-content;
         }
 
-        
         .message-options {
-          left: 10px; 
+          left: 10px;
           color: white;
         }
       }
@@ -474,4 +475,29 @@ export default {
 .three-dots {
   right: 10px;
 }
+.options-menu {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.options-menu .option {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.options-menu .option:hover {
+  background: #f0f0f0;
+}
+
 </style>
